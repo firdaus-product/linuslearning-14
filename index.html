@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ms-MY">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kemahiran Pemulihan: Kurang Satu</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { box-sizing: border-box; }
+    .hop-animation { animation: hop .5s ease-in-out; }
+    @keyframes hop { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+    .number-box { transition: .2s ease; }
+    .number-box:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(0,0,0,.15); }
+    .selected { background: linear-gradient(135deg,#fbbf24,#f59e0b); transform: scale(1.07); }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white shadow-sm p-4">
+    <h1 class="text-3xl font-bold text-center text-purple-800">🎯 Kemahiran Pemulihan: Kurang Satu</h1>
+    <p class="text-center text-gray-600 mt-2">Untuk murid 5–9 tahun • Pembelajaran interaktif tanpa markah</p>
+  </header>
+
+  <!-- Info Bar -->
+  <div class="bg-yellow-100 border-l-4 border-yellow-500 p-4 m-4 rounded-lg shadow-sm">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center">
+        <span class="text-2xl mr-3">ℹ️</span>
+        <span id="infoText" class="text-lg font-medium text-yellow-800">Klik mana-mana elemen untuk belajar.</span>
+      </div>
+      <button id="speakBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-full text-xl transition-colors">🔊</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <main class="max-w-6xl mx-auto p-4">
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+      <div id="activityContent" class="min-h-96">
+        <div class="text-center text-gray-500 text-xl py-20">Pilih aktiviti untuk bermula! 🎮</div>
+      </div>
+    </div>
+
+    <!-- Pilih Aktiviti -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+      <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">🎮 Pilih Aktiviti</h2>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <button onclick="loadActivity('lif')" class="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-lg text-lg font-bold">🛗 Lif</button>
+        <button onclick="loadActivity('kurang1')" class="bg-green-500 hover:bg-green-600 text-white p-4 rounded-lg text-lg font-bold">🔻 Kurangkan 1</button>
+        <button onclick="loadActivity('warna')" class="bg-purple-500 hover:bg-purple-600 text-white p-4 rounded-lg text-lg font-bold">🎨 Warna Jawapan</button>
+        <button onclick="loadActivity('padanan')" class="bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-lg text-lg font-bold">🔗 Padanan Mesra</button>
+        <button onclick="loadActivity('urutan')" class="bg-pink-500 hover:bg-pink-600 text-white p-4 rounded-lg text-lg font-bold">📉 Urutan Menurun</button>
+      </div>
+      <div class="flex justify-center gap-4">
+        <button onclick="clearActivity()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg text-lg font-bold">🧹 Bersih</button>
+        <button onclick="nextActivity()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg text-lg font-bold">➡️ Seterusnya</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    /* ====== TTS ====== */
+    let currentKey = null;
+    let isUnlocked = false;
+    function unlockAudio(){ if(!isUnlocked){ speechSynthesis.speak(new SpeechSynthesisUtterance('')); isUnlocked = true; } }
+    function setInfo(t){ document.getElementById('infoText').textContent = t; }
+    function speak(t){
+      if(!isUnlocked) return;
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(t);
+      u.lang='ms-MY'; u.rate=.85; u.pitch=1.05;
+      const v = speechSynthesis.getVoices().find(v=>v.lang.includes('ms')||v.lang.includes('MY'));
+      if(v) u.voice=v;
+      speechSynthesis.speak(u);
+    }
+    document.getElementById('speakBtn').addEventListener('click',()=>speak(document.getElementById('infoText').textContent));
+    document.addEventListener('click',unlockAudio,{once:true});
+
+    /* ====== Aktiviti 1: 🛗 Lif Kurang Satu ====== */
+    let lifFloor = null;
+    function viewLif(){
+      const floors=[2,3,4,5,6,7,8,9];
+      return `
+        <h3 class="text-2xl font-bold text-center mb-6 text-blue-800">🛗 Lif Kurang Satu</h3>
+        <p class="text-center text-lg mb-6">Pilih aras → tekan “Turun 1” untuk lihat konsep kurang satu.</p>
+
+        <div class="max-w-xl mx-auto bg-blue-50 rounded-xl p-5 border border-blue-200">
+          <div class="flex items-center gap-4 justify-center mb-4"><div class="text-5xl">🏢</div><div class="text-5xl">🛗</div></div>
+
+          <div class="text-center mb-3">
+            <div class="text-sm text-gray-600">Aras semasa</div>
+            <div id="lif-current" class="text-4xl font-extrabold text-blue-700">${lifFloor ?? '—'}</div>
+          </div>
+
+          <div class="grid grid-cols-4 gap-3 mb-4">
+            ${floors.map(n=>`
+              <button class="bg-white hover:bg-blue-100 border-2 border-blue-300 rounded-lg py-3 font-bold"
+                      onclick="chooseFloor(${n})">${n}</button>
+            `).join('')}
+          </div>
+
+          <div class="text-center">
+            <button id="btnTurun" class="bg-blue-600 disabled:opacity-40 text-white px-4 py-2 rounded-lg font-bold"
+                    onclick="turunSatu()" ${lifFloor? '':'disabled'}>⬇️ Turun 1</button>
+          </div>
+
+          <div id="lif-explain" class="mt-4 text-center text-gray-700"></div>
+        </div>
+      `;
+    }
+    function chooseFloor(n){
+      lifFloor=n;
+      document.getElementById('lif-current').textContent=n;
+      document.getElementById('btnTurun').disabled=false;
+      setInfo(`Lif berada di aras ${n}. Tekan "Turun 1" untuk kurang satu.`);
+      speak(`Lif berada di aras ${n}. Turun satu.`);
+    }
+    function turunSatu(){
+      if(lifFloor===null) return;
+      const lama=lifFloor, baharu=lama-1; lifFloor=baharu;
+      document.getElementById('lif-current').textContent=baharu;
+      document.getElementById('lif-explain').innerHTML = `
+        <div class="inline-block bg-white border rounded-lg px-4 py-3">
+          <div class="font-semibold">Kurang satu daripada ${lama} ialah
+            <span class="text-green-700 font-extrabold">${baharu}</span>.
+          </div>
+          <div class="text-2xl mt-1">🔵${'🔵'.repeat(Math.max(baharu,0))}
+            <span class="opacity-30">${baharu>=0?'🔵':''}</span>
+          </div>
+        </div>`;
+      setInfo(`Kurang satu daripada ${lama} ialah ${baharu}.`);
+      speak(`Kurang satu daripada ${lama} ialah ${baharu}.`);
+    }
+
+    /* ====== Aktiviti 2: 🔻 Kurangkan 1 ====== */
+    function viewKurang1(){
+      const nums=[3,5,7,4,6];
+      return `
+        <h3 class="text-2xl font-bold text-center mb-6 text-green-800">🔻 Kurangkan 1</h3>
+        <p class="text-center text-lg mb-6">Klik satu pilihan. Sistem akan jelaskan.</p>
+        <div class="grid grid-cols-1 gap-6">
+          ${nums.map(n=>`
+            <div class="bg-green-50 p-6 rounded-lg border-2 border-green-200">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="text-2xl font-bold">Kurang satu daripada ${n} ialah:</div>
+                <div class="flex gap-3">
+                  ${[n-2,n-1,n,n+1].map(opt=>`
+                    <button onclick="explainMinusOne(${n},${opt},this)"
+                      class="bg-white hover:bg-green-100 border-2 border-green-300 text-2xl font-bold px-6 py-3 rounded-lg transition-colors">${opt}</button>
+                  `).join('')}
+                </div>
+              </div>
+            </div>`).join('')}
+        </div>`;
+    }
+    function explainMinusOne(original, chosen, btn){
+      unlockAudio();
+      const correct = original-1;
+      const rowBtns = btn.parentElement.querySelectorAll('button');
+      rowBtns.forEach(b=>{ b.disabled=true; b.classList.remove('bg-green-500','bg-red-500','text-white'); });
+      if(chosen===correct){
+        btn.classList.add('bg-green-500','text-white');
+        setInfo(`Bagus! Kurang satu daripada ${original} ialah ${correct}.`);
+        speak(`Bagus! Kurang satu daripada ${original} ialah ${correct}.`);
+      }else{
+        btn.classList.add('bg-red-500','text-white');
+        rowBtns[1].classList.add('bg-green-500','text-white');
+        setInfo(`Jawapan yang tepat ialah ${correct}.`);
+        speak(`Jawapan yang tepat ialah ${correct}.`);
+      }
+    }
+
+    /* ====== Aktiviti 3: 🎨 Warna Jawapan ====== */
+    function viewWarna(){
+      const probs=[ {q:'5 - 1',a:4},{q:'3 - 1',a:2},{q:'7 - 1',a:6},{q:'2 - 1',a:1},{q:'6 - 1',a:5} ];
+      return `
+        <h3 class="text-2xl font-bold text-center mb-6 text-purple-800">🎨 Warna Jawapan Yang Betul</h3>
+        <p class="text-center text-lg mb-6">Klik untuk mewarnakan jawapan.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          ${probs.map(p=>`
+            <div class="bg-purple-50 p-6 rounded-lg border-2 border-purple-200">
+              <div class="text-center mb-4"><div class="text-3xl font-bold text-purple-800">${p.q} = ?</div></div>
+              <div class="grid grid-cols-3 gap-3">
+                ${[p.a-1,p.a,p.a+1].map(o=>`
+                  <button onclick="colorAnswer(${p.a},${o},this)"
+                    class="bg-white hover:bg-purple-100 border-2 border-purple-300 text-2xl font-bold py-4 rounded-lg transition-colors">${o}</button>
+                `).join('')}
+              </div>
+            </div>`).join('')}
+        </div>`;
+    }
+    function colorAnswer(correct, chosen, btn){
+      unlockAudio();
+      const row = btn.parentElement.querySelectorAll('button');
+      row.forEach(b=>{ b.disabled=true; b.classList.remove('bg-green-400','bg-red-400','text-white'); });
+      if(chosen===correct){
+        btn.classList.add('bg-green-400','text-white');
+        setInfo('Bagus! Jawapan yang betul diwarnakan hijau.');
+        speak('Bagus! Jawapan yang betul diwarnakan hijau.');
+      }else{
+        btn.classList.add('bg-red-400','text-white');
+        row[1].classList.add('bg-green-400','text-white');
+        setInfo(`Jawapan yang betul ialah ${correct}.`);
+        speak(`Jawapan yang betul ialah ${correct}.`);
+      }
+    }
+
+    /* ====== Aktiviti 4: 🔗 Padanan Mesra ====== */
+    function viewPadanan(){
+      const pairs=[ {l:'4 - 1',r:'3'},{l:'6 - 1',r:'5'},{l:'8 - 1',r:'7'},{l:'3 - 1',r:'2'},{l:'5 - 1',r:'4'} ];
+      return `
+        <h3 class="text-2xl font-bold text-center mb-6 text-orange-800">🔗 Padanan Mesra</h3>
+        <p class="text-center text-lg mb-6">Klik satu soalan, kemudian klik jawapannya.</p>
+        <div class="grid grid-cols-2 gap-8">
+          <div class="space-y-4">
+            <h4 class="text-xl font-bold text-center text-orange-700">Soalan</h4>
+            ${pairs.map((p,i)=>`
+              <button onclick="selectQ('${p.l}','${p.r}',${i},this)"
+                class="w-full bg-orange-100 hover:bg-orange-200 border-2 border-orange-300 text-xl font-bold py-4 rounded-lg transition-colors question-btn"
+                data-index="${i}">${p.l}</button>`).join('')}
+          </div>
+          <div class="space-y-4">
+            <h4 class="text-xl font-bold text-center text-orange-700">Jawapan</h4>
+            ${pairs.map((p,i)=>`
+              <button onclick="selectA('${p.r}',${i},this)"
+                class="w-full bg-orange-100 hover:bg-orange-200 border-2 border-orange-300 text-xl font-bold py-4 rounded-lg transition-colors answer-btn"
+                data-index="${i}">${p.r}</button>`).join('')}
+          </div>
+        </div>`;
+    }
+    let selectedQ=null;
+    function selectQ(q,correct,i,btn){
+      unlockAudio();
+      document.querySelectorAll('.question-btn').forEach(b=>{ b.classList.remove('selected','bg-orange-400','text-white'); b.classList.add('bg-orange-100'); });
+      btn.classList.add('selected','bg-orange-400','text-white');
+      selectedQ={q,correct,i};
+      setInfo(`Soalan dipilih: ${q}. Pilih jawapan yang sepadan.`);
+      speak(`Soalan dipilih: ${q}. Pilih jawapan yang sepadan.`);
+    }
+    function selectA(ans,i,btn){
+      if(!selectedQ){ setInfo('Pilih soalan dahulu.'); speak('Pilih soalan dahulu.'); return; }
+      unlockAudio();
+      if(ans===selectedQ.correct){
+        btn.classList.add('bg-green-500','text-white');
+        document.querySelector(`[data-index="${selectedQ.i}"].question-btn`).classList.add('bg-green-500','text-white');
+        setInfo(`Bagus! ${selectedQ.q} = ${ans}.`);
+        speak(`Bagus! ${selectedQ.q} sama dengan ${ans}.`);
+        selectedQ=null;
+      }else{
+        btn.classList.add('bg-red-500','text-white');
+        setTimeout(()=>btn.classList.remove('bg-red-500','text-white'),900);
+        setInfo('Cuba lagi, pilih jawapan yang sepadan.');
+        speak('Cuba lagi, pilih jawapan yang sepadan.');
+      }
+    }
+
+    /* ====== Aktiviti 5: 📉 Urutan Menurun ====== */
+    let arrangementState={};
+    function viewUrutan(){
+      const seqs=[ {start:5, items:[5,4,3,2,1]},
+                   {start:8, items:[8,7,6,5,4]},
+                   {start:6, items:[6,5,4,3,2]} ];
+      return `
+        <h3 class="text-2xl font-bold text-center mb-6 text-pink-800">📉 Urutan Menurun</h3>
+        <p class="text-center text-lg mb-6">Susun nombor dari besar ke kecil (kurang 1 setiap langkah).</p>
+        <div class="space-y-8">
+          ${seqs.map((s,si)=>`
+            <div class="bg-pink-50 p-6 rounded-lg border-2 border-pink-200">
+              <div class="text-center mb-4"><div class="text-xl font-bold text-pink-800">Bermula dari ${s.start}</div></div>
+              <div class="flex justify-center gap-2 mb-4" id="sequence-${si}">
+                ${s.items.slice().sort(()=>Math.random()-0.5).map((n,idx)=>`
+                  <button onclick="arrangeNumber(${si},${n},${idx},this)"
+                    class="bg-white hover:bg-pink-100 border-2 border-pink-300 text-xl font-bold px-4 py-3 rounded-lg transition-colors"
+                    data-number="${n}" data-seq="${si}">${n}</button>`).join('')}
+              </div>
+              <div class="flex justify-center gap-2" id="target-${si}">
+                ${s.items.map((_,i)=>`
+                  <div class="w-16 h-16 border-2 border-dashed border-pink-400 rounded-lg flex items-center justify-center text-pink-400 font-bold"
+                       data-position="${i}" data-seq="${si}">${i+1}</div>`).join('')}
+              </div>
+            </div>`).join('')}
+        </div>`;
+    }
+    function arrangeNumber(si,n,idx,btn){
+      unlockAudio();
+      if(!arrangementState[si]){
+        arrangementState[si]={placed:[],correct:[5,4,3,2,1]};
+        if(si===1) arrangementState[si].correct=[8,7,6,5,4];
+        if(si===2) arrangementState[si].correct=[6,5,4,3,2];
+      }
+      const st=arrangementState[si];
+      const next=st.placed.length;
+      if(next>=st.correct.length) return;
+
+      const slot=document.querySelector(`[data-position="${next}"][data-seq="${si}"]`);
+      slot.textContent=n;
+      slot.classList.remove('border-dashed','border-pink-400','text-pink-400');
+
+      if(n===st.correct[next]){
+        slot.classList.add('bg-green-400','text-white','border-green-400');
+        btn.style.display='none';
+        st.placed.push(n);
+        if(st.placed.length===st.correct.length){
+          setInfo('Tahniah! Urutan betul telah lengkap.');
+          speak('Tahniah! Urutan betul telah lengkap.');
+        }else{
+          setInfo(`Bagus! Seterusnya pilih ${st.correct[next+1]}.`);
+          speak(`Bagus! Seterusnya pilih ${st.correct[next+1]}.`);
+        }
+      }else{
+        slot.classList.add('bg-red-400','text-white','border-red-400');
+        setInfo(`Cuba lagi! Sepatutnya ${st.correct[next]}.`);
+        speak(`Cuba lagi! Sepatutnya ${st.correct[next]}.`);
+        setTimeout(()=>{
+          slot.textContent=next+1;
+          slot.classList.remove('bg-red-400','text-white','border-red-400');
+          slot.classList.add('border-dashed','border-pink-400','text-pink-400');
+        },1100);
+      }
+    }
+
+    /* ====== Router & Controls ====== */
+    const orderKeys=['lif','kurang1','warna','padanan','urutan'];
+    function loadActivity(key){
+      unlockAudio();
+      currentKey=key;
+      const el=document.getElementById('activityContent');
+      if(key==='lif'){ lifFloor=null; el.innerHTML=viewLif(); setInfo('Pilih aras, kemudian tekan “Turun 1”.'); }
+      if(key==='kurang1'){ el.innerHTML=viewKurang1(); setInfo('Klik satu pilihan untuk lihat penerangan.'); }
+      if(key==='warna'){ el.innerHTML=viewWarna(); setInfo('Klik bulatan nombor untuk mewarnakan jawapan.'); }
+      if(key==='padanan'){ el.innerHTML=viewPadanan(); setInfo('Pilih soalan, kemudian pilih jawapannya.'); }
+      if(key==='urutan'){ arrangementState={}; el.innerHTML=viewUrutan(); setInfo('Susun nombor mengikut urutan menurun.'); }
+    }
+    function clearActivity(){
+      document.getElementById('activityContent').innerHTML='<div class="text-center text-gray-500 text-xl py-20">Pilih aktiviti untuk bermula! 🎮</div>';
+      setInfo('Klik mana-mana elemen untuk belajar.');
+      currentKey=null; lifFloor=null; arrangementState={}; selectedQ=null;
+    }
+    function nextActivity(){
+      const i = orderKeys.indexOf(currentKey);
+      const next = i===-1 ? 0 : (i+1)%orderKeys.length;
+      loadActivity(orderKeys[next]);
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded',()=>clearActivity());
+  </script>
+</body>
+</html>
